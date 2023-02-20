@@ -5,6 +5,7 @@
 # install.packages("texreg")  # For printing "nicer" model output
 
 rm(list = ls())
+list.files()
 
 library(statnet)
 library(ergm)
@@ -15,8 +16,7 @@ messageEdgelist <- read.csv("data/slack_edgelist_adjusted_id.csv")
 female_nodes <- read.csv("data/female_nodes.csv")
 message <- as.network.matrix(messageEdgelist, 
                              matrix.type = "edgelist", 
-                             ignore.eval=FALSE,
-                             names.eval='Weight',
+                             ignore.eval=TRUE,
                              directed = TRUE)
 message
 
@@ -24,7 +24,7 @@ set.vertex.attribute(message, "female",read.csv("data/female_nodes.csv")$female)
 message
 
 # Double-check the values for all of the node/edge variables
-get.edge.value(message, "Weight")
+# get.edge.value(message, "Weight")
 get.vertex.attribute(message,"female")
 
 help("ergm-terms",package = "ergm")
@@ -75,7 +75,7 @@ summary(message ~ dgwesp(log(2),fixed = T))
 # Look at Exogenous statistics: terms based on advice ties AND other ties / node attributes
 # Number of ties between people of the same sex
 summary(message ~ nodematch("female"))            
-# 8635
+# 8636
 
 # Number of ties between people working in the same department
 # summary(message ~ nodematch("department"))  
@@ -93,45 +93,46 @@ model1 <- ergm(message ~ edges                 # This is  a tendency towards a g
 ) 
 summary(model1) 
 
-# Iteration 10 of at most 60:
-#   Optimizing with step length 1.0000.
-# The log-likelihood improved by 0.0036.
-# Convergence test p-value: 0.0022. Converged with 99% confidence.
-# Finished MCMLE.
-# Evaluating log-likelihood at the estimate. Fitting the dyad-independent submodel...
-# Bridging between the dyad-independent submodel and the full model...
-# Setting up bridge sampling...
-# Using 16 bridges: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 .
-# Bridging finished.
-# This model was fit using MCMC.  To examine model diagnostics and check for degeneracy, use the mcmc.diagnostics()
-# function.
+# Iteration 8 of at most 60:
+#ergm(formula = message ~ edges + mutual)
+
+#Monte Carlo Maximum Likelihood Results:
+  
+# Estimate Std. Error MCMC % z value Pr(>|z|)    
+# edges  -7.30721    0.03916      0  -186.6   <1e-04 ***
+#   mutual 10.57737    0.07927      0   133.4   <1e-04 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Null Deviance: 1338198  on 965306  degrees of freedom
+# Residual Deviance:   95062  on 965304  degrees of freedom
+# 
+# AIC: 95066  BIC: 95090  (Smaller is better. MC Std. Err. = 19.46)
+
+model2 <- ergm(message ~ edges
+               + mutual
+               # + gwidegree(log(2), fixed = T)                 # Inverted preferential attachment (indegree)
+               # + gwodegree(2, fixed = T, cutoff = 5)              # Inverted preferential attachment (outdegree)
+               # + dgwesp(log(2), type = "OTP", fixed = T, cutoff =5)    # A modified version of Outgoing Two Path(i->j + i->k->j) structures. Geometrically weighted version of transitivity
+               # Node attribute effects
+               + nodematch("female")) 
+               # Control settings for MCMC-MLE algorithm
+               # , control = control.ergm(MCMC.effectiveSize = 50))
+summary(model2) 
 # Warning message:
 #   In ergm_MCMC_sample(s, control, theta = mcmc.init, verbose = max(verbose -  :
-#    Unable to reach target effective size in iterations alotted.
-#    > summary(model1) 
-#    Call:
-#     ergm(formula = message ~ edges + mutual)
-#     Monte Carlo Maximum Likelihood Results:
-#                                                                      
-#       Estimate Std. Error MCMC % z value Pr(>|z|)    
-#edges  -7.30907    0.04163      0  -175.6   <1e-04 ***
-#mutual 10.58330    0.08416      0   125.7   <1e-04 ***
+# Unable to reach target effective size in iterations alotted.
+# # 
+# Monte Carlo Maximum Likelihood Results:
+#   
+#   Estimate Std. Error MCMC %  z value Pr(>|z|)    
+# edges            -7.301332   0.040858      0 -178.698   <1e-04 ***
+#   mutual           10.576813   0.080814      0  130.879   <1e-04 ***
+#   nodematch.female -0.009155   0.011545      0   -0.793    0.428    
 # ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-#                                                                    
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
 # Null Deviance: 1338198  on 965306  degrees of freedom
-# Residual Deviance:   95047  on 965304  degrees of freedom
-
-#  AIC: 95051  BIC: 95075  (Smaller is better. MC Std. Err. = 17.15)
-
-
-model2 <- ergm(message ~ 
-                 mutual
-               + gwidegree(log(2), fixed = T)                 # Inverted preferential attachment (indegree)
-               + gwodegree(2, fixed = T, cutoff = 5)              # Inverted preferential attachment (outdegree)
-               + dgwesp(log(2), type = "OTP", fixed = T, cutoff =5)    # A modified version of Outgoing Two Path(i->j + i->k->j) structures. Geometrically weighted version of transitivity
-               # Node attribute effects
-               + nodematch("female") 
-               # Control settings for MCMC-MLE algorithm
-               , control = control.ergm(MCMC.effectiveSize = 50))
-summary(model2) 
+# Residual Deviance:   94964  on 965303  degrees of freedom
+# 
+# AIC: 94970  BIC: 95005  (Smaller is better. MC Std. Err. = 20.53)

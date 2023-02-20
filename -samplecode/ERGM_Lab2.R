@@ -22,7 +22,7 @@ list.files() # List the files in the current working directory to see if you're 
 # Responses to the question:
 # “List up to 5 employees who you rely on the most for help or advice at work.” 
 # Note that participants were limited to selecting at most five respondents.
-adviceEdgelist <- read.csv("adviceEdgelist.csv")
+adviceEdgelist <- read.csv("-samplecode/adviceEdgelist.csv")
 # View the first rows of the edgelist to make sure it imported correctly:
 head(adviceEdgelist)
 # Convert the edgelist to a network object in statnet format:
@@ -31,11 +31,11 @@ advice # View a summary of the network object
 
 # Independent variables:
 # Load node attributes, and store them in the advice network object we have created
-set.vertex.attribute(advice, "department",read.csv("departmentNode.csv",stringsAsFactors=FALSE)$department) # Categorical variable for department
-set.vertex.attribute(advice, "leader",read.csv("leaderNode.csv")$leader) # Indicator variable for department leader
-set.vertex.attribute(advice, "tenure",read.csv("tenureNode.csv")$tenure) # Years tenure
-set.vertex.attribute(advice, "office",read.csv("officeNode.csv")$office) # Indicator variable for whether they are located in the main or secondary office
-set.vertex.attribute(advice, "female",read.csv("femaleNode.csv")$female) # Indicator variable for female vs. male
+set.vertex.attribute(advice, "department",read.csv("-samplecode/departmentNode.csv",stringsAsFactors=FALSE)$department) # Categorical variable for department
+set.vertex.attribute(advice, "leader",read.csv("-samplecode/leaderNode.csv")$leader) # Indicator variable for department leader
+set.vertex.attribute(advice, "tenure",read.csv("-samplecode/tenureNode.csv")$tenure) # Years tenure
+set.vertex.attribute(advice, "office",read.csv("-samplecode/officeNode.csv")$office) # Indicator variable for whether they are located in the main or secondary office
+set.vertex.attribute(advice, "female",read.csv("-samplecode/femaleNode.csv")$female) # Indicator variable for female vs. male
 advice # These five variables should now be listed as vertex attributes when viewing the summary of the network
 
 # Double-check the values for all of the node variables
