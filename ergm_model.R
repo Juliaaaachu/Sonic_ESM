@@ -83,15 +83,15 @@ summary(message ~ nodematch("female"))
 # ------------------------------------------------------------------------------
 # The following commands do model estimation for ERGMs.
 # This may take a second. Text will print in-console to update you on progress in model estimation.
-model1 <- ergm(message ~ edges                 # This is  a tendency towards a greater number of advice ties existing. Based on a statistic counting the number of ties.
-               # Structural patterns
-               + mutual                      # This is a tendency towards reciprocity for the advice ties. Based on a statistic counting the number of reciprocated ties.
-               # + edgecov(hundreds_messages)  # This is the effect of every 100 messages sent from i->j on likelihood of an advice tie. Based on a weighted sum of advice ties x 100s of messages sent
-               # + nodemix("leader",base = 3)
-               # # Model constraints
-               # , constraints =~ bd(maxout=5) # This constraint enforces the maximum outdegree is 5
-) 
-summary(model1) 
+# model1 <- ergm(message ~ edges                 # This is  a tendency towards a greater number of advice ties existing. Based on a statistic counting the number of ties.
+#                # Structural patterns
+#                + mutual                      # This is a tendency towards reciprocity for the advice ties. Based on a statistic counting the number of reciprocated ties.
+#                # + edgecov(hundreds_messages)  # This is the effect of every 100 messages sent from i->j on likelihood of an advice tie. Based on a weighted sum of advice ties x 100s of messages sent
+#                # + nodemix("leader",base = 3)
+#                # # Model constraints
+#                # , constraints =~ bd(maxout=5) # This constraint enforces the maximum outdegree is 5
+# ) 
+# summary(model1) 
 
 # Iteration 8 of at most 60:
 #ergm(formula = message ~ edges + mutual)
@@ -136,3 +136,23 @@ summary(model2)
 # Residual Deviance:   94964  on 965303  degrees of freedom
 # 
 # AIC: 94970  BIC: 95005  (Smaller is better. MC Std. Err. = 20.53)
+
+library(texreg)
+screenreg(list("model2"=model2))
+
+pdf('model2diagnostics.pdf')              # Open a pdf file to save to
+mcmc.diagnostics(model2) # Run the markov chain monte carlo diagnostics
+dev.off()                # Closes and saves the pdf
+
+
+# -------------------------------------------------------------------------------------------------
+# Test the goodness of fit of the model
+# Compiles statistics for these simulations as well as the observed network, and calculates p-values 
+# -------------------------------------------------------------------------------------------------
+# Model 2:
+# It may take a second for this command to run.
+gof2 <- gof(model2, verbose=T, burnin=1e+5, interval=1e+5, control = control.gof.ergm(nsim = 200))
+dev.off()
+plot(gof2)
+gof2
+
