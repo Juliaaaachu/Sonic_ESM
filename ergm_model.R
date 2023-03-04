@@ -9,6 +9,10 @@ list.files()
 
 library(statnet)
 library(ergm)
+library(sna)
+library(network)
+
+
 options(ergm.loglik.warn_dyads=FALSE) 
 
 
@@ -21,6 +25,7 @@ message <- as.network.matrix(messageEdgelist,
 message
 
 set.vertex.attribute(message, "female",read.csv("data/female_nodes.csv")$female)
+# message%v%"female" <- female_nodes
 message
 
 # Double-check the values for all of the node/edge variables
@@ -34,6 +39,21 @@ summary(message ~ edges)
 summary(message ~ mutual)         # Number of pairs of reciprocated ties
 #edges = 17377
 #mutual = 8371
+
+network.density(message) 
+#0.01800155
+
+sum(has.edges(message))
+#603 True
+
+#Extract nonisolated Nodes 
+non_isolated_nodes <- which(has.edges(message))
+
+#Extract subgraph from nonisolated nodes
+non_isolated_messages <- get.inducedSubgraph(message, v = non_isolated_nodes)
+non_isolated_messages
+
+summary(non_isolated_messages ~ edges)
 
 # ------------------------------------------------------------------------------
 # Outdegree distribution
@@ -77,6 +97,12 @@ summary(message ~ dgwesp(log(2),fixed = T))
 summary(message ~ nodematch("female"))            
 # 8636
 
+#Number of isolated networks (node not connecting to any other node)
+isolates(message, diag=FALSE)
+
+
+component_dist(message, connected="strong")
+component_dist(message, connected="weak")
 # Number of ties between people working in the same department
 # summary(message ~ nodematch("department"))  
 
@@ -136,7 +162,6 @@ summary(model2)
 # Residual Deviance:   94964  on 965303  degrees of freedom
 # 
 # AIC: 94970  BIC: 95005  (Smaller is better. MC Std. Err. = 20.53)
-
 library(texreg)
 screenreg(list("model2"=model2))
 
@@ -144,6 +169,18 @@ pdf('model2diagnostics.pdf')              # Open a pdf file to save to
 mcmc.diagnostics(model2) # Run the markov chain monte carlo diagnostics
 dev.off()                # Closes and saves the pdf
 
+
+
+model3 <- ergm(message ~ edges
+               + mutual
+               + gwidegree(2, fixed = T))
+
+summary(model3) 
+screenreg(list("model3"=model3))
+
+pdf('model3diagnostics.pdf')              # Open a pdf file to save to
+mcmc.diagnostics(model2) # Run the markov chain monte carlo diagnostics
+dev.off()                # Closes and saves the pdf
 
 # -------------------------------------------------------------------------------------------------
 # Test the goodness of fit of the model
